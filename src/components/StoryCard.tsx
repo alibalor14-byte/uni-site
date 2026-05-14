@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Heart, MessageCircle, Calendar } from "lucide-react";
-import type { Story, Comment } from "@/types/story";
+import type { Story, Comment } from "../types/story";
 import CommentSection from "./CommentSection";
 
 interface StoryCardProps {
