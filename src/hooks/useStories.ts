@@ -1,80 +1,105 @@
 import { useState, useEffect } from "react";
 import type { Story, Comment, Category } from "../types/story";
 import { supabase } from "../lib/supabase";
-const STORAGE_KEY = "storyshare_stories";
-
-// Demo data shown on first visit so the feed is never empty
-const demoStories: Story[] = [];
-
-/** Load stories from local storage (or demo data on first visit) */
-function getInitialStories(): Story[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw) as Story[];
-  } catch {
-    // ignore parse errors
-  }
-  return demoStories;
-}
 
 export function useStories() {
   const [stories, setStories] = useState<Story[]>([]);
 
   useEffect(() => {
     const fetchStories = async () => {
-      const { data, error } = await supabase
-        .from('stories')
-        .select('*');
+  const { data, error } = await supabase
+    .from('stories')
+    .select('*');
 
-      if (error) {
-        console.error("Error fetching stories:", error);
-      } else if (data) {
-        setStories(data as Story[]);
-      }
-    };
+  if (error) {
+    console.error("Error fetching stories:", error);
+  } else if (data) {
+    // هنا السحر: نحول content إلى description قبل ما نرسلها للتطبيق
+    const formattedStories = data.map(story => ({
+      ...story,
+      description: story.description || story.content // لو لقاها description خير وبركة، لو لقاها content يحولها
+    }));
+    setStories(formattedStories as Story[]);
+  }
+};
 
     fetchStories();
   }, []);
 
-  /** Add a new story */
-  const addStory = (
-    payload: Omit<Story, "id" | "date" | "likes" | "comments">
-  ) => {
-    const newStory: Story = {
-      ...payload,
-      id: crypto.randomUUID(),
-      date: new Date().toISOString(),
-      likes: 0,
-      comments: [],
-    };
-    setStories((prev) => [newStory, ...prev]);
-  };
+  const addStory = async (payload: Omit<Story, "id" | "date" | "likes" | "comments">) => {
+  // تجهيز البيانات لإرسالها لـ Supabase
+  const { data, error } = await supabase
+    .from('stories')
+    .insert([
+      {
+        title: payload.title,
+        content: payload.content, // أو description حسب ما استقرينا عليه
+        author: payload.author,
+        category: payload.category,
+        likes: 0,
+        comments: []
+      }
+    ])
+    .select(); // نطلب من Supabase يرجع لنا القصة بعد ما انحفظت
+
+  if (error) {
+    console.error("Error adding story:", error);
+  } else if (data) {
+    // تحديث الواجهة فوراً بالقصة الجديدة اللي رجعت من القاعدة
+    setStories(prev => [data[0] as Story, ...prev]);
+  }
+};
 
   /** Increase like count for a story */
-  const toggleLike = (id: string) => {
-    setStories((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, likes: s.likes + 1 } : s))
+  const toggleLike = async (id: string) => {
+  const story = stories.find(s => s.id === id);
+  if (!story) return;
+
+  const currentLikes = story.likes || 0;
+
+  // تحديث قاعدة البيانات في Supabase
+  const { error } = await supabase
+    .from('stories')
+    .update({ likes: currentLikes + 1 })
+    .eq('id', id);
+
+  if (error) {
+    console.error("Error updating likes:", error);
+  } else {
+    // تحديث الواجهة أمام المستخدم
+    setStories(prev => 
+      prev.map(s => s.id === id ? { ...s, likes: currentLikes + 1 } : s)
     );
+  }
+};
+
+ const addComment = async (storyId: string, comment: Omit<Comment, "id" | "date">) => {
+  const story = stories.find(s => s.id === storyId);
+  if (!story) return;
+
+  const newComment = {
+    ...comment,
+    id: crypto.randomUUID(),
+    date: new Date().toISOString(),
   };
 
-  /** Add a comment to a story */
-  const addComment = (
-    storyId: string,
-    comment: Omit<Comment, "id" | "date">
-  ) => {
-    const newComment: Comment = {
-      ...comment,
-      id: crypto.randomUUID(),
-      date: new Date().toISOString(),
-    };
-    setStories((prev) =>
-      prev.map((s) =>
-        s.id === storyId
-          ? { ...s, comments: [...s.comments, newComment] }
-          : s
-      )
+  const updatedComments = [...(story.comments || []), newComment];
+
+  // تحديث قاعدة البيانات
+  const { error } = await supabase
+    .from('stories')
+    .update({ comments: updatedComments })
+    .eq('id', storyId);
+
+  if (error) {
+    console.error("Error adding comment:", error);
+  } else {
+    // تحديث الواجهة
+    setStories(prev =>
+      prev.map(s => (s.id === storyId ? { ...s, comments: updatedComments } : s))
     );
-  };
+  }
+};
 
   /** Filter stories by category */
   const getByCategory = (category: Category | "All") => {
