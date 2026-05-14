@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import type { Story, Comment, Category } from "@/types/story";
-
+import type { Story, Comment, Category } from "../types/story";
+import { supabase } from "../lib/supabase";
 const STORAGE_KEY = "storyshare_stories";
 
 // Demo data shown on first visit so the feed is never empty
@@ -18,12 +18,23 @@ function getInitialStories(): Story[] {
 }
 
 export function useStories() {
-  const [stories, setStories] = useState<Story[]>(getInitialStories);
+  const [stories, setStories] = useState<Story[]>([]);
 
-  // Persist to local storage on every change
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(stories));
-  }, [stories]);
+    const fetchStories = async () => {
+      const { data, error } = await supabase
+        .from('stories')
+        .select('*');
+
+      if (error) {
+        console.error("Error fetching stories:", error);
+      } else if (data) {
+        setStories(data as Story[]);
+      }
+    };
+
+    fetchStories();
+  }, []);
 
   /** Add a new story */
   const addStory = (
