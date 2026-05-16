@@ -33,7 +33,7 @@ export function useStories() {
     .insert([
       {
         title: payload.title,
-        content: payload.content, // أو description حسب ما استقرينا عليه
+        content: payload.content,
         author: payload.author,
         category: payload.category,
         likes: 0,
@@ -51,24 +51,23 @@ export function useStories() {
 };
 
   /** Increase like count for a story */
-  const toggleLike = async (id: string) => {
+ const toggleLike = async (id: string) => {
   const story = stories.find(s => s.id === id);
   if (!story) return;
 
   const currentLikes = story.likes || 0;
-
-  // تحديث قاعدة البيانات في Supabase
+  const newLikes = currentLikes + 1;
+   setStories(prev => 
+    prev.map(s => s.id === id ? { ...s, likes: newLikes } : s));
   const { error } = await supabase
     .from('stories')
-    .update({ likes: currentLikes + 1 })
+    .update({ likes: newLikes })
     .eq('id', id);
 
   if (error) {
     console.error("Error updating likes:", error);
-  } else {
-    // تحديث الواجهة أمام المستخدم
-    setStories(prev => 
-      prev.map(s => s.id === id ? { ...s, likes: currentLikes + 1 } : s)
+    setStories(prev =>
+      prev.map(s => s.id === id ? { ...s, likes: currentLikes } : s)
     );
   }
 };

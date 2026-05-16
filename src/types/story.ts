@@ -1,8 +1,3 @@
-/**
- * Story and Comment type definitions
- * Edit these structures if you want to store extra fields
- */
-
 export type Category = "مضحكة" | "حزينة" | "ملهمة" | "أخرى";
 
 export interface Comment {
@@ -15,10 +10,10 @@ export interface Comment {
 export interface Story {
   id: string;
   title: string;
-  category: Category;
   content: string;
-  author: string; // optional name fallback "Anonymous"
-  date: string;
+  author: string;
+  category: string;
+  created_at: string; // أضف هذا أو استبدل date به
   likes: number;
-  comments: Comment[];
+  comments: any[];
 }

@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Home, PenLine, BookOpen, Sun, Moon } from "lucide-react";
-import { useDarkMode } from "@/hooks/useDarkMode";
+import { useDarkMode } from "../hooks/useDarkMode";
 import collegeLogo from "../assets/LOGO.png";
 export default function Header() {
   const { isDark, toggle } = useDarkMode();

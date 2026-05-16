@@ -17,7 +17,6 @@ export default function StoryCard({ story, onLike, onAddComment }: StoryCardProp
   const handleLike = () => {
     setLiked(true);
     onLike(story.id);
-    // reset liked animation state after a short delay so it can be clicked again
     setTimeout(() => setLiked(false), 600);
   };
 
@@ -94,7 +93,7 @@ export default function StoryCard({ story, onLike, onAddComment }: StoryCardProp
           aria-label="Toggle comments"
         >
           <MessageCircle size={18} />
-          {story.content?.length || 0}
+          {story.comments?.length || 0}
         </button>
       </div>
 

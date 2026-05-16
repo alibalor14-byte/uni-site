@@ -20,8 +20,9 @@ export default function ShareStory() {
   const [showWarning, setShowWarning] = useState(false);
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim() || !content.trim()) {
-      setError("Title and story content are required.");
+
+    if (!title || !content || !author) {
+      alert("Title and story content are required.");
       return;
     }
 
