@@ -46,7 +46,7 @@ export default function StoryCard({ story, onLike, onAddComment }: StoryCardProp
         </span>
         <span className="flex items-center gap-1 text-xs text-gray-400">
           <Calendar size={12} />
-          {new Date(story.date).toLocaleDateString(undefined, {
+          {new Date(story.created_at).toLocaleDateString(undefined, {
             month: "short",
             day: "numeric",
             year: "numeric",
