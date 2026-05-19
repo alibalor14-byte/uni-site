@@ -28,7 +28,7 @@ export function useStories() {
 
   const addStory = async (payload: Omit<Story, "id" | "date" | "likes" | "comments">) => {
   // تجهيز البيانات لإرسالها لـ Supabase
-  const { data, error } = await supabase
+  const { data, error: supabaseError } = await supabase
     .from('stories')
     .insert([
       {
@@ -50,27 +50,33 @@ export function useStories() {
   }
 };
 
-  /** Increase like count for a story */
- const toggleLike = async (id: string) => {
+const toggleLike = async (id: string) => {
   const story = stories.find(s => s.id === id);
-  if (!story) return;
-
+  if (!story) {
+    console.error("لم يتم العثور على القصة في الـ State!");
+    return;
+  }
+  
   const currentLikes = story.likes || 0;
   const newLikes = currentLikes + 1;
 
-   setStories(prev => 
-    prev.map(s => s.id === id ? { ...s, likes: newLikes } : s));
-    
-  const { error } = await supabase
+  setStories(prev => prev.map(s => s.id === id ? { ...s, likes: newLikes } : s));
+
+  console.log("جاري تحديث القصة رقم:", id, "إلى عدد لايكات:", newLikes);
+
+  const { data, error } = await supabase
     .from('stories')
     .update({ likes: newLikes })
-    .eq('id', id);
+    .eq('id', id)
+    .select(); // إضافة .select() مهمة جداً لرؤية النتيجة
 
   if (error) {
-    console.error("Error updating likes:", error);
-    setStories(prev =>
-      prev.map(s => s.id === id ? { ...s, likes: currentLikes } : s)
-    );
+    // هذا السطر سيكشف لنا السبب الحقيقي (RLS، خطأ في العمود، إلخ)
+    console.error("خطأ Supabase بالتفصيل:", error);
+    // تراجع عن التحديث إذا حدث خطأ
+    setStories(prev => prev.map(s => s.id === id ? { ...s, likes: currentLikes } : s));
+  } else {
+    console.log("تم التحديث بنجاح في Supabase!");
   }
 };
 
