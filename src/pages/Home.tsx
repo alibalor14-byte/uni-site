@@ -7,28 +7,8 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 
 export default function Home() {
-  const { toggleLike, addComment } = useStoryContext();
-  const [stories, setStories] = useState<any[]>([]);
-  const [recent, setRecent] = useState<any[]>([]);
-useEffect(() => {
-    const fetchStories = async () => {
-      const { data, error } = await supabase
-        .from('stories')
-        .select('*');
-
-      if (error) {
-        console.error('Error fetching stories:', error);
-        return;
-      }
-
-      if (data) {
-        setStories(data);
-        setRecent(data.slice(0, 3));
-      }
-    };
-
-    fetchStories();
-  }, []);
+  const { stories, toggleLike, addComment } = useStoryContext();
+  const recent = stories.slice(0, 3);
 
   return (
     <div className="flex flex-col gap-16 py-12">

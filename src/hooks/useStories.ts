@@ -57,8 +57,10 @@ export function useStories() {
 
   const currentLikes = story.likes || 0;
   const newLikes = currentLikes + 1;
+
    setStories(prev => 
     prev.map(s => s.id === id ? { ...s, likes: newLikes } : s));
+    
   const { error } = await supabase
     .from('stories')
     .update({ likes: newLikes })
