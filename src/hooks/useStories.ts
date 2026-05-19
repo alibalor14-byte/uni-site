@@ -26,7 +26,7 @@ export function useStories() {
     fetchStories();
   }, []);
 
-  const addStory = async (payload: Omit<Story, "id" | "date" | "likes" | "comments">) => {
+  const addStory = async (payload: Omit<Story, "id" | "create_at" | "likes" | "comments">) => {
   // تجهيز البيانات لإرسالها لـ Supabase
   const { data, error: supabaseError } = await supabase
     .from('stories')
@@ -42,8 +42,8 @@ export function useStories() {
     ])
     .select(); // نطلب من Supabase يرجع لنا القصة بعد ما انحفظت
 
-  if (error) {
-    console.error("Error adding story:", error);
+  if (supabaseError) {
+    console.error("Error adding story:", supabaseError);
   } else if (data) {
     // تحديث الواجهة فوراً بالقصة الجديدة اللي رجعت من القاعدة
     setStories(prev => [data[0] as Story, ...prev]);
