@@ -8,6 +8,7 @@ import { supabase } from '../supabaseClient';
 
 export default function Home() {
   const { stories, toggleLike, addComment } = useStoryContext();
+
   const recent = stories.slice(0, 3);
 
   return (

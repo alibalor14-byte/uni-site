@@ -4,7 +4,7 @@ export interface Comment {
   id: string;
   author: string;
   text: string;
-  date: string; // ISO string
+  date: string;
 }
 
 export interface Story {
@@ -13,7 +13,7 @@ export interface Story {
   content: string;
   author: string;
   category: string;
-  created_at: string; // أضف هذا أو استبدل date به
+  created_at: string;
   likes: number;
   comments: any[];
 }
