@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import type { Story, Comment, Category } from "../types/story";
+import type { Story, Category } from "../types/story";
 import { supabase } from "../lib/supabase";
 
 export function useStories() {
@@ -26,7 +26,7 @@ export function useStories() {
     fetchStories();
   }, []);
 
-  const addStory = async (payload: Omit<Story, "id" | "create_at" | "likes" | "comments">) => {
+  const addStory = async (payload: Omit<Story, "id" | "create_at" | "likes">) => {
   // تجهيز البيانات لإرسالها لـ Supabase
   const { data, error: supabaseError } = await supabase
     .from('stories')
@@ -37,7 +37,6 @@ export function useStories() {
         author: payload.author,
         category: payload.category,
         likes: 0,
-        comments: []
       }
     ])
     .select(); // نطلب من Supabase يرجع لنا القصة بعد ما انحفظت
@@ -80,33 +79,6 @@ const toggleLike = async (id: string) => {
   }
 };
 
- const addComment = async (storyId: string, comment: Omit<Comment, "id" | "date">) => {
-  const story = stories.find(s => s.id === storyId);
-  if (!story) return;
-
-  const newComment = {
-    ...comment,
-    id: crypto.randomUUID(),
-    date: new Date().toISOString(),
-  };
-
-  const updatedComments = [...(story.comments || []), newComment];
-
-  // تحديث قاعدة البيانات
-  const { error } = await supabase
-    .from('stories')
-    .update({ comments: updatedComments })
-    .eq('id', storyId);
-
-  if (error) {
-    console.error("Error adding comment:", error);
-  } else {
-    // تحديث الواجهة
-    setStories(prev =>
-      prev.map(s => (s.id === storyId ? { ...s, comments: updatedComments } : s))
-    );
-  }
-};
 
   /** Filter stories by category */
   const getByCategory = (category: Category | "All") => {
@@ -114,5 +86,5 @@ const toggleLike = async (id: string) => {
     return stories.filter((s) => s.category === category);
   };
 
-  return { stories, addStory, toggleLike, addComment, getByCategory };
+  return { stories, addStory, toggleLike, getByCategory };
 }

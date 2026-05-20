@@ -7,7 +7,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 
 export default function Home() {
-  const { stories, toggleLike, addComment } = useStoryContext();
+  const { stories, toggleLike } = useStoryContext();
 
   const recent = stories.slice(0, 3);
 
@@ -93,7 +93,6 @@ export default function Home() {
                 key={story.id}
                 story={story}
                 onLike={toggleLike}
-                onAddComment={addComment}
               />
             ))}
           </div>
