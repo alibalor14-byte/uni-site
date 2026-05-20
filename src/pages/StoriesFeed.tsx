@@ -29,13 +29,23 @@ export default function StoriesFeed() {
   }, []);
 
   // 3. تعديل خاصية اللايك لتعمل مع Supabase (اختياري حالياً لكنه يحل العطل)
-  const handleLike = (id: string) => {
-    // تحديث الواجهة فوراً
-    setStories(prev => prev.map(s => 
-      s.id === id ? { ...s, likes: (s.likes || 0) + 1 } : s
-    ));
-    // هنا مستقبلاً سنضيف كود تحديث Supabase
-  };
+  const handleLike = async (id: string, currentLikes: number) => {
+  // 1. تحديث قاعدة البيانات
+  const { error } = await supabase
+    .from('stories')
+    .update({ likes: currentLikes + 1 })
+    .eq('id', id);
+
+  if (error) {
+    console.error("Error updating likes:", error);
+    return; // أوقف العملية إذا حدث خطأ
+  }
+
+  // 2. تحديث الواجهة فوراً (كما كنت تفعل)
+  setStories(prev => prev.map(s => 
+    s.id === id ? { ...s, likes: (s.likes || 0) + 1 } : s
+  ));
+};
 
   const filtered = activeFilter === "الكل" 
     ? stories 
@@ -93,7 +103,6 @@ export default function StoriesFeed() {
                 key={story.id}
                 story={story}
                 onLike={handleLike}
-                onAddComment={addComment}
               />
             ))}
           </AnimatePresence>

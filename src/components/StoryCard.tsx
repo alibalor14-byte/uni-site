@@ -6,12 +6,10 @@ import CommentSection from "./CommentSection";
 
 interface StoryCardProps {
   story: Story;
-  onLike: (id: string) => void;
-  onAddComment: (storyId: string, comment: Omit<Comment, "id" | "date">) => void;
+  onLike: (id: string) => void | Promise<void>;
 }
 
-export default function StoryCard({ story, onLike, onAddComment }: StoryCardProps) {
-  const [showComments, setShowComments] = useState(false);
+export default function StoryCard({ story, onLike }: StoryCardProps) {
   const [liked, setLiked] = useState(false);
 
   const handleLike = () => {
@@ -38,9 +36,8 @@ export default function StoryCard({ story, onLike, onAddComment }: StoryCardProp
       {/* Top row: category badge + date */}
       <div className="flex items-center justify-between">
         <span
-          className={`text-xs font-semibold px-3 py-1 rounded-full ${
-            categoryColors[story.category] || "bg-gray-100 text-gray-700"
-          }`}
+          className={`text-xs font-semibold px-3 py-1 rounded-full ${categoryColors[story.category] || "bg-gray-100 text-gray-700"
+            }`}
         >
           {story.category}
         </span>
@@ -86,34 +83,4 @@ export default function StoryCard({ story, onLike, onAddComment }: StoryCardProp
           />
           {story.likes}
         </motion.button>
-
-        <button
-          onClick={() => setShowComments((v) => !v)}
-          className="flex items-center gap-1.5 text-sm font-medium text-gray-600 hover:text-black dark:hover:text-white transition-colors"
-          aria-label="Toggle comments"
-        >
-          <MessageCircle size={18} />
-          {story.comments?.length || 0}
-        </button>
-      </div>
-
-      {/* Comment section */}
-      <AnimatePresence>
-        {showComments && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3 }}
-            className="overflow-hidden"
-          >
-            <CommentSection
-              comments={story.comments}
-              onSubmit={(author, text) => onAddComment(story.id, { author, text })}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.article>
-  );
-}
+        </div>
